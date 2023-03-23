@@ -1,0 +1,103 @@
+add the above code in this source code in a diffrent function 
+const { Client } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
+const { Configuration, OpenAIApi } = require("openai");
+require('dotenv').config();
+
+const client = new Client();
+const maxMessages = 50;
+let messageCount = 0;
+let upgradeKeys = ['MRNGWANG12345678', '1234MRNGWANG5678', 'MRNGWANGqwertyui', 'ASDFGHMRNGWANGJK', 'MRNGWANG78901234','5678MRNGWANG1234','MRNGWANGzxcvb123','qwertyMRNGWANGui','MRNGWANG23456789','0123MRNGWANG4567']; // replace with your own upgrade keys
+let usedUpgradeKeys = [];
+let maxMessageExpiration = null;
+let userName = {}; // store user's name
+
+client.on('qr', (qr) => {
+    qrcode.generate(qr, {small: true});
+});
+
+client.on('ready', () => {
+    console.log('Client is ready!');
+});
+
+client.initialize();
+
+const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+
+client.on('message', async (message) => {
+    console.log(message.body);
+    
+    // check if the user has sent a message before
+    if (!userName[message.from]) {
+        const chat = await message.getChat();
+        const user = await chat.getContact();
+        userName[message.from] = user.name;
+        message.reply(`Welcome to  *WandaBot* by *Mr Ngwang* , \n ${user.name}! \n\n please enter *155# or #123# to check menu thanks.`);
+        return;
+    }
+    if(message.body.startsWith("#")) {
+        runCompletion(message.body.substring(1)).then(result => message.reply(result));
+    }
+    // check if the message is an upgrade code
+    if (message.body.startsWith('!upgrade')) {
+        const code = message.body.split(' ')[1];
+        if (upgradeKeys.includes(code) && !usedUpgradeKeys.includes(code)) {
+            message.reply('Upgrade successful! Thanks or using WandaBot');
+            messageCount = 0;
+            usedUpgradeKeys.push(code);
+            if (usedUpgradeKeys.length > 5) {
+              usedUpgradeKeys.shift();
+            }
+            maxMessageExpiration = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
+        } else if (usedUpgradeKeys.includes(code)) {
+            message.reply('This upgrade key has already been used. Please try again with a new one.');
+        } else {
+            message.reply('Invalid upgrade code. Please try again. or contact https://wa.link/36rm4p for new subscription');
+        }
+        return;
+    }
+    
+    // check message count
+    if (++messageCount > maxMessages) {
+        if (maxMessageExpiration && Date.now() < maxMessageExpiration) {
+            message.reply(`You have exceeded the maximum number of messages for the free plan!. Please upgrade to continue. Send !upgrade {upgrade code}`);
+        } else {
+            message.reply('Upgrade has expired. Please upgrade again to continue. Send \n\n !upgrade {upgrade code}');
+        }
+        return;
+    }
+    //checking is the user want to see menu
+    if (message.body.toLowerCase().includes('*155#') || message.body.toLowerCase().includes('#123#')) {
+        message.reply('*_Welcome to WandaBot_* \n you can use WandaBot to do the following: \n ✅ Auto reply to messages in chats and groups \n ✅ Generate AI written content(essays,...) \n ✅ Solve maths question \n ✅ Answer MCQ Queestions \n ✅ Help in idea suggestions\n you are most welcome to our srevice!\n ✅ `*123*1#` {check the number of messages left in free plan\n ✅');
+        return;
+    }
+    // check if the message is asking for the bot's name
+    if (message.body.toLowerCase().includes('what\'s your name') || message.body.toLowerCase().includes('your name?')) {
+        message.reply('My name is *WandaBot* By *Mr Ngwang* . Nice to meet you!');
+        return;
+    }
+    
+    // check if the message is asking who created the bot
+    if (message.body.toLowerCase().includes('who created you') || message.body.toLowerCase().includes('who made you')) {
+        message.reply('I was created by  *Mr Ngwang* , a  researcher  in artificial intelligence. You can learn more about him by chatting with him  here: https://wa.link/36rm4p');
+        return;
+    }
+});
+    // send message to OpenAI
+    async function runCompletion (message) {
+        const completion = await openai.createChatCompletion({
+            model: "gpt-3.5-turbo",
+            messages: [
+                {"role": "system", "content": "Your name is WandaBot, A polite helpful assistant. When asked who designed you, you say that you were designed by https://wa.link/36rm4p"},
+                {"role": "user", "content": "Who won the world series in 2020?"},
+                {"role": "assistant", "content": "Am sorry if i did not answer you, you can try again please"},
+                {"role": "user", "content": "Am sorry if i did not answer you, you can try again please"},
+                {"role": "user", "content": message},
+            ],
+            max_tokens: 200,
+        });
+        return completion.data.choices[0].message.content;
+}

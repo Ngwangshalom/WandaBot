@@ -1,0 +1,35 @@
+{
+  "name": "WandaBot",
+  "version": "2.0.1",
+  "description": "ChatGPT for WhatsApp using OpenAI API(gpt-3.5-turbo) and whatsapp-web.js its called WandaBot, written in JS using Node.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "WandaBot",
+    "Hello",
+    "Mr Ngwang",
+    "Cameroon",
+    "Documentation"
+  ],
+  "author": "Mr Ngwang",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "flutterwave": "^2.2.8",
+    "flutterwave-node": "^1.2.2",
+    "openai": "^3.2.1",
+    "puppeteer": "^19.7.5",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.19.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://wa.link/36rm4p"
+  },
+  "bugs": {
+    "url": "https://wa.link/36rm4p"
+  },
+  "homepage": "https://wa.link/36rm4p"
+}
